@@ -4,6 +4,9 @@
 # Vagrantfile API/syntax version. Don't touch unless you know what you're doing!
 VAGRANTFILE_API_VERSION = "2"
 
+# Select the FIRST-priority interface on the dedicated server to bridge.
+VM_INTERFACES = %x( VBoxManage list bridgedifs | grep ^Name ).gsub(/Name:\s+/, '').split("\n")
+
 # Get the available physical CPU cores on host system, inspired by
 # https://coderwall.com/p/ghbzhw
 #
@@ -16,6 +19,9 @@ VBOX_CPU = (HW_CPUS.to_i / 2).to_s
 
 # Hostname for guest system
 VBOX_NAME = "arduino"
+
+# Extra public/bridged ethernet interface for guest system
+VBOX_NETIF = VM_INTERFACES[0]
 
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
@@ -43,6 +49,12 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     end
   end
 
+  # Add forwarding port
+  config.vm.network :forwarded_port, guest: 4000, host: 4000
+
+  # Add a public/bridged ethernet interface.
+  config.vm.network :public_network, :bridge => VBOX_NETIF
+
   # Share current repository at top.
   config.vm.synced_folder "../../", "/myboxes"
 
@@ -58,7 +70,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.provider "virtualbox" do |vb|
     # Don't boot with headless mode
     vb.gui = false
-  
+
     vb.customize ["modifyvm", :id, "--cpus", VBOX_CPU]
     vb.customize ["modifyvm", :id, "--memory", "2048"]
     vb.customize ["modifyvm", :id, "--usb", "on"]
@@ -66,7 +78,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
     # Add an USB filter rule for automatically mounting Arduino boards
     # when the board is connected to the host system via USB.
-    # 
+    #
     vb.customize ["usbfilter", "add", "0",
         "--target", :id,
         "--name", "any arduino compatible device",
@@ -75,4 +87,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
         "--manufacturer", "Arduino (www.arduino.cc)"
     ]
   end
+
+  # Initialize the box.
+  #
+  config.vm.provision "shell", inline: "sudo /myboxes/scripts/init_$(hostname).sh"
 end
