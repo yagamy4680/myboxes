@@ -51,9 +51,10 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
   # Add forwarding port
   config.vm.network :forwarded_port, guest: 4000, host: 4000
+  config.vm.network :forwarded_port, guest: 35729, host: 35729
 
   # Add a public/bridged ethernet interface.
-  config.vm.network :public_network, :bridge => VBOX_NETIF
+  # config.vm.network :public_network, :bridge => VBOX_NETIF
 
   # Share current repository at top.
   config.vm.synced_folder "../../", "/myboxes"
