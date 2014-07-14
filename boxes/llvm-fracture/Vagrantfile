@@ -1,0 +1,92 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+# Vagrantfile API/syntax version. Don't touch unless you know what you're doing!
+VAGRANTFILE_API_VERSION = "2"
+
+# Select the FIRST-priority interface on the dedicated server to bridge.
+VM_INTERFACES = %x( VBoxManage list bridgedifs | grep ^Name ).gsub(/Name:\s+/, '').split("\n")
+
+# Get the available physical CPU cores on host system, inspired by
+# https://coderwall.com/p/ghbzhw
+#
+HW_CPUS = RbConfig::CONFIG['host_os'] =~ /darwin/ ?
+    %x( sysctl -n hw.physicalcpu_max ) :
+    %x( nproc )
+
+# The guest system only uses half of physical CPU cores of host system.
+VBOX_CPU = HW_CPUS.to_i.to_s
+
+# Hostname for guest system
+VBOX_NAME = "fracture"
+
+# Extra public/bridged ethernet interface for guest system
+VBOX_NETIF = VM_INTERFACES[0]
+
+
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+  # All Vagrant configuration is done here. The most common configuration
+  # options are documented and commented below. For a complete reference,
+  # please see the online documentation at vagrantup.com.
+
+  # Using Ubuntu 14.04 custom build as base, because
+  # gcc4.7 (or above) is required to compile `fracture` and
+  # latest llvm.
+  #
+  # And, also change to phusion's ubuntu image that has
+  # 40GB default disk space.
+  #
+  config.vm.box = "phusion/ubuntu-14.04-amd64"
+  # config.vm.box = "ffuenf/ubuntu-12.04.4-server-amd64"
+
+  config.vm.hostname = VBOX_NAME
+
+  # Enable `vagrant-cachier` to cache APT packages for multiple machine
+  # environment.
+  #
+  if Vagrant.has_plugin?("vagrant-cachier")
+    config.cache.scope = :machine
+    config.cache.auto_detect = true
+  else
+    # only display the tips on vagrant up
+    if ARGV[0] == "up"
+      puts "[information] recommended vagrant plugin 'vagrant-cachier' plugin was not found"
+      puts "[information] 'vagrant-cachier' will speed up repeated provisioning operations"
+      puts "[information] install the plugin with command 'vagrant plugin install vagrant-cachier'"
+    end
+  end
+
+  # Add forwarding port
+  # config.vm.network :forwarded_port, guest: 35729, host: 35729
+
+  # Add a public/bridged ethernet interface.
+  # config.vm.network :public_network, :bridge => VBOX_NETIF
+
+  # Share current repository at top.
+  config.vm.synced_folder "../../", "/myboxes"
+
+  # Share workspace path if environment variable `WORKSPACE_PATH` is available.
+  if ENV.has_key?('WORKSPACE_PATH')
+    config.vm.synced_folder ENV['WORKSPACE_PATH'], "/workspace"
+  end
+
+  # Provider-specific configuration so you can fine-tune various
+  # backing providers for Vagrant. These expose provider-specific options.
+  # Example for VirtualBox:
+  #
+  config.vm.provider "virtualbox" do |vb|
+    # Don't boot with headless mode
+    vb.gui = false
+
+    vb.customize ["modifyvm", :id, "--cpus", VBOX_CPU]
+
+    # Compile LLVM needs lots of memory... If we only use 2GB RAM,
+    # gcc will tell you `Out of memory`.
+    #
+    vb.customize ["modifyvm", :id, "--memory", "8192"]
+  end
+
+  # Initialize the box.
+  #
+  config.vm.provision "shell", inline: "sudo /myboxes/scripts/init_$(hostname).sh"
+end
