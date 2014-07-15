@@ -90,3 +90,17 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   #
   config.vm.provision "shell", inline: "sudo /myboxes/scripts/init_$(hostname).sh"
 end
+
+# Development environment for Fracture
+#
+#
+# prerequisites:
+# 
+# apt-get update
+# apt-get install -y git build-essential cmake libreadline6 libreadline6-dev g++ autoconf automake python-software-properties doxygen
+# add-apt-repository -y ppa:ubuntu-toolchain-r/test
+# apt-get update
+# apt-get install -y gcc-4.7 g++-4.7
+# ./configure --enable-debug-symbols --with-llvmsrc=/home/vagrant/llvm --with-llvmobj=/home/vagrant/llvm --disable-optimized
+
+
