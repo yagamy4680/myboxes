@@ -1,0 +1,70 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+# Vagrantfile API/syntax version. Don't touch unless you know what you're doing!
+VAGRANTFILE_API_VERSION = "2"
+
+# 1st priority ethernet interface.
+#
+VM_INTERFACES = %x( VBoxManage list bridgedifs | grep ^Name ).gsub(/Name:\s+/, '').split("\n")
+IF_INTERFACE = VM_INTERFACES[0]
+
+# Hostname for guest system
+VBOX_NAME = "zentyal"
+
+# One extra disk (30GB) to enlarge disk space from 8GB to 38GB.
+#
+ZENTYAL_EXTENSION_DISK = File.realpath( "." ).to_s + "/zentyal_ext_disk.vdi"
+
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+
+  config.vm.box = "ffuenf/ubuntu-13.10-server-amd64"
+  config.vm.hostname = VBOX_NAME
+  config.vm.network "public_network", :bridge => IF_INTERFACE
+
+  # Enable `vagrant-cachier` to cache APT packages for multiple machine
+  # environment.
+  #
+  if Vagrant.has_plugin?("vagrant-cachier")
+    config.cache.scope = :machine
+    config.cache.auto_detect = true
+  else
+    # only display the tips on vagrant up
+    if ARGV[0] == "up"
+      puts "[information] recommended vagrant plugin 'vagrant-cachier' plugin was not found"
+      puts "[information] 'vagrant-cachier' will speed up repeated provisioning operations"
+      puts "[information] install the plugin with command 'vagrant plugin install vagrant-cachier'"
+    end
+  end
+
+  # Share current repository at top.
+  config.vm.synced_folder "../../", "/myboxes"
+
+  config.vm.provider :virtualbox do |vb|
+    vb.gui = false
+    vb.customize ["modifyvm", :id, "--memory", "2048"]
+    vb.customize ["modifyvm", :id, "--cpus", "4"]
+
+    # Inspired by https://github.com/snowch/carbon-products-development-environment
+    #
+    if ARGV[0] == "up" && ! File.exist?(ZENTYAL_EXTENSION_DISK)
+      puts "Creating 30GB disk #{ZENTYAL_EXTENSION_DISK}."
+      vb.customize [
+        'createhd',
+        '--filename', ZENTYAL_EXTENSION_DISK,
+        '--format', 'VDI',
+        '--size', 300000 * 1024 # 30 GB
+        ]
+      vb.customize [
+        'storageattach', :id,
+        '--storagectl', 'IDE Controller',
+        '--port', 1, '--device', 0,
+        '--type', 'hdd', '--medium',
+        ZENTYAL_EXTENSION_DISK
+        ]
+    end
+  end
+
+  config.vm.provision "shell", path: "add_new_disk.sh"
+  config.vm.provision "shell", inline: "sudo /myboxes/scripts/init_$(hostname).sh"
+end
