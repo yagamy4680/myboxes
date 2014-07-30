@@ -90,6 +90,13 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
         "--productid", "0042",
         "--manufacturer", "Arduino (www.arduino.cc)"
     ]
+
+    vb.customize ["usbfilter", "add", "1",
+        "--target", :id,
+        "--name", "csr bluetooth 4.0 dongle",
+        "--vendorid", "0A12",
+        "--productid", "0001"
+    ]
   end
 
   # Initialize the box.
