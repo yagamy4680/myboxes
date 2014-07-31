@@ -36,3 +36,6 @@ build/
 # Vagrant and VirtualBox
 *.vdi
 .vagrant
+
+# OS-specifics
+.DS_Store

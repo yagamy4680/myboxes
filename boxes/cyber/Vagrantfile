@@ -10,8 +10,8 @@ VM_INTERFACES = %x( VBoxManage list bridgedifs | grep ^Name ).gsub(/Name:\s+/, '
 IF_INTERFACE = VM_INTERFACES[0]
 
 # Hostname for guest system
-VBOX_NAME = "zentyal"
-VBOX_IF_MAC = "0800270da766"
+VBOX_NAME = "cyber"
+VBOX_IF_MAC = "0800270da777"
 
 # One extra disk (30GB) to enlarge disk space from 8GB to 38GB.
 #
@@ -27,14 +27,13 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   # environment.
   #
   if Vagrant.has_plugin?("vagrant-cachier")
-    config.cache.scope = :machine
-    config.cache.auto_detect = true
+    puts "[warning] please don't install vagrant-cachier to cache APT packages"
+    puts "[warning] because zentyal cannot work normally with local cache due to unknown reason"
+    config.cache.auto_detect = false
   else
     # only display the tips on vagrant up
     if ARGV[0] == "up"
-      puts "[information] recommended vagrant plugin 'vagrant-cachier' plugin was not found"
-      puts "[information] 'vagrant-cachier' will speed up repeated provisioning operations"
-      puts "[information] install the plugin with command 'vagrant plugin install vagrant-cachier'"
+      puts "[information] good to start without vagrant-cachier"
     end
   end
 
@@ -67,6 +66,5 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   end
 
   config.vm.provision "shell", path: "add_new_disk.sh"
-  # config.vm.provision "shell", path: "set_public_network.sh"
-  config.vm.provision "shell", inline: "sudo /myboxes/scripts/init_$(hostname).sh"
+  config.vm.provision "shell", inline: "sudo /myboxes/scripts/init_zentyal.sh"
 end
