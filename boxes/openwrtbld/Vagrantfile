@@ -15,7 +15,7 @@ HW_CPUS = RbConfig::CONFIG['host_os'] =~ /darwin/ ?
     %x( nproc )
 
 # The guest system only uses half of physical CPU cores of host system.
-VBOX_CPU = (HW_CPUS.to_i / 2).to_s
+VBOX_CPU = HW_CPUS.to_i.to_s
 
 # Hostname for guest system
 VBOX_NAME = "openwrtbld"
@@ -69,7 +69,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     vb.gui = false
 
     vb.customize ["modifyvm", :id, "--cpus", VBOX_CPU]
-    vb.customize ["modifyvm", :id, "--memory", "2048"]
+    vb.customize ["modifyvm", :id, "--memory", "4096"]
   end
 
   # Initialize the box.
