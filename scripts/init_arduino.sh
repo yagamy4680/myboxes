@@ -11,6 +11,14 @@ apt-get install -y arduino python-pip picocom build-essential vim
 #
 pip install ino
 
+# Install python serial package
+#
+pip install serial
+
+# Install all necessary packages for BlueZ development
+#
+apt-get install -y python-gobject python-dbus
+
 # Install all necessary packages for building BlueZ
 apt-get install -y libusb-dev libdbus-1-dev libglib2.0-dev libudev-dev libical-dev libreadline-dev
 
