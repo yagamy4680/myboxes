@@ -64,7 +64,9 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   if ENV.has_key?('WORKSPACE_PATH')
     config.vm.synced_folder ENV['WORKSPACE_PATH'], "/workspaces"
   else
-    config.vm.synced_folder "~/Work/workspaces/t2t/arduinoweb", "/workspaces"
+    if !ENV.has_key?('NO_WORKSPACE')
+      config.vm.synced_folder "~/Work/workspaces/t2t/arduinoweb", "/workspaces"
+    end
   end
 
   # Provider-specific configuration so you can fine-tune various
