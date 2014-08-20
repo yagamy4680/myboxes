@@ -10,10 +10,17 @@
     <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap-theme.min.css">
   </head>
   <body>
-    <h2>F-Plug (temperature and power)</h2>
-    <canvas id="fplug0" width="400" height="100"></canvas>
-    <h2>F-Plug (humidity and illuminance)</h2>
-    <canvas id="fplug1" width="400" height="100"></canvas>
+    <center>
+      <h2><span id="lbTemperature">.</span></h2>
+      <h2><span id="lbPower">.</span></h2>
+      <canvas id="fplug0" width="400" height="100"></canvas>
+    </center>
+    <hr>
+    <center>
+      <canvas id="fplug1" width="400" height="100"></canvas>
+      <h2><span id="lbHumidity">.</span></h2>
+      <h2><span id="lbIlluminance">.</span></h2>
+    </center>
   </body>
   <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
   <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
