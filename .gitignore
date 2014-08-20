@@ -39,3 +39,7 @@ build/
 
 # OS-specifics
 .DS_Store
+nohup.out
+
+# Python
+*.pyc
