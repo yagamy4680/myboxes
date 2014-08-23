@@ -55,7 +55,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.network :forwarded_port, guest: 35729, host: 35729
 
   # Add a public/bridged ethernet interface.
-  config.vm.network :public_network, :bridge => VBOX_NETIF
+  # config.vm.network :public_network, :bridge => VBOX_NETIF
 
   # Share current repository at top.
   config.vm.synced_folder "../../", "/myboxes"
@@ -82,6 +82,9 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     vb.customize ["modifyvm", :id, "--usb", "on"]
     vb.customize ["modifyvm", :id, "--usbehci", "on"]
 
+    # vb.customize ["modifyvm", :id, "--uart1", "0x3F8", "4"]
+    # vb.customize ["modifyvm", :id, "--uartmode1", "server", "/tmp/arduino_uart0"]
+
     # Add an USB filter rule for automatically mounting Arduino boards
     # when the board is connected to the host system via USB.
     #
@@ -102,9 +105,9 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
     vb.customize ["usbfilter", "add", "2",
         "--target", :id,
-        "--name", "CSR8510 A10",
-        "--vendorid", "0A12",
-        "--productid", "0001"
+        "--name", "USB-Serial Controller",
+        "--vendorid", "067B",
+        "--productid", "2303"
     ]
   end
 
