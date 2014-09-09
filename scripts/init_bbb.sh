@@ -9,4 +9,4 @@ apt-get install -y python-pip python-dev python-gobject python-dbus build-essent
 
 # Install necessary python packages
 #
-pip install serial twisted rainbow_logging_handler
+pip install pyserial twisted rainbow_logging_handler
