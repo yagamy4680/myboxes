@@ -15,7 +15,8 @@ BLUEZ_INSTALLATION=true ./build.sh
 # 
 if [ "true" == "${INSTALL_PYTHON_PACKAGES}" ]; then
 	apt-get install -y python-pip
-	pip install python-gobject python-dbus pyserial
+	# pip install python-gobject python-dbus pyserial
+    pip install pygobject python-dbus pyserial
 fi
 
 

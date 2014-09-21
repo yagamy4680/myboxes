@@ -1,0 +1,130 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+# Vagrantfile API/syntax version. Don't touch unless you know what you're doing!
+VAGRANTFILE_API_VERSION = "2"
+
+# Select the FIRST-priority interface on the dedicated server to bridge.
+VM_INTERFACES = %x( VBoxManage list bridgedifs | grep ^Name ).gsub(/Name:\s+/, '').split("\n")
+
+# Get the available physical CPU cores on host system, inspired by
+# https://coderwall.com/p/ghbzhw
+#
+HW_CPUS = RbConfig::CONFIG['host_os'] =~ /darwin/ ?
+    %x( sysctl -n hw.physicalcpu_max ) :
+    %x( nproc )
+
+# The guest system only uses half of physical CPU cores of host system.
+VBOX_CPU = (HW_CPUS.to_i / 2).to_s
+
+# Hostname for guest system
+VBOX_NAME = File.basename(Dir.getwd)
+
+# Extra public/bridged ethernet interface for guest system
+VBOX_NETIF = VM_INTERFACES[0]
+
+VBOX_DEFAULT_SANDBOX = "../../../../t2t/sandbox"
+VBOX_DEFAULT_WORKSPACE = "#{VBOX_DEFAULT_SANDBOX}/workspaces/#{VBOX_NAME}"
+
+
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+
+  # Ubuntu 14.04.1 Desktop amd64
+  #   - https://github.com/box-cutter/ubuntu-vm
+  #   - 40GB disk
+  #   -  1GB ram
+  #
+  # config.vm.box = "box-cutter/ubuntu1404-desktop"
+  config.vm.box = "janihur/ubuntu-1404-desktop"
+
+
+  config.vm.hostname = VBOX_NAME
+
+  # Enable `vagrant-cachier` to cache APT packages for multiple machine
+  # environment.
+  #
+  if Vagrant.has_plugin?("vagrant-cachier")
+    config.cache.scope = :machine
+    config.cache.auto_detect = true
+  else
+    # only display the tips on vagrant up
+    if ARGV[0] == "up"
+      puts "[information] recommended vagrant plugin 'vagrant-cachier' plugin was not found"
+      puts "[information] 'vagrant-cachier' will speed up repeated provisioning operations"
+      puts "[information] install the plugin with command 'vagrant plugin install vagrant-cachier'"
+    end
+  end
+
+  # Add forwarding port
+  config.vm.network :forwarded_port, guest: 4000, host: 4000
+
+  # Add a public/bridged ethernet interface.
+  # config.vm.network :public_network, :bridge => VBOX_NETIF
+
+  # Share current repository at top.
+  config.vm.synced_folder "../../", "/myboxes"
+
+  # Share workspace path if environment variable `WORKSPACE_PATH` is available.
+  if ENV.has_key?('WORKSPACE_PATH')
+    config.vm.synced_folder ENV['WORKSPACE_PATH'], "/workspaces"
+  else
+    if File.directory?(VBOX_DEFAULT_WORKSPACE)
+      config.vm.synced_folder VBOX_DEFAULT_WORKSPACE, "/workspaces"
+    else
+      puts "[warning] #{VBOX_DEFAULT_WORKSPACE} doesn't exist"
+    end
+  end
+
+  if File.directory?(VBOX_DEFAULT_SANDBOX)
+    config.vm.synced_folder VBOX_DEFAULT_SANDBOX, "/sandbox"
+  else
+    puts "[warning] #{VBOX_DEFAULT_SANDBOX} doesn't exist"
+  end
+
+  # Provider-specific configuration so you can fine-tune various
+  # backing providers for Vagrant. These expose provider-specific options.
+  # Example for VirtualBox:
+  #
+  config.vm.provider "virtualbox" do |vb|
+    # Don't boot with headless mode
+    vb.gui = true
+
+    vb.customize ["modifyvm", :id, "--cpus", VBOX_CPU]
+    vb.customize ["modifyvm", :id, "--memory", "2048"]
+    vb.customize ["modifyvm", :id, "--usb", "on"]
+    vb.customize ["modifyvm", :id, "--usbehci", "on"]
+
+    # vb.customize ["modifyvm", :id, "--uart1", "0x3F8", "4"]
+    # vb.customize ["modifyvm", :id, "--uartmode1", "server", "/tmp/arduino_uart0"]
+
+    # Add an USB filter rule to automatically mount Bluetooth Dongle
+    # and PL2302 USB-to-SERIAL cable.
+    #
+    vb.customize ["usbfilter", "add", "0",
+        "--target", :id,
+        "--name", "CSR8510 A10",
+        "--vendorid", "0A12",
+        "--productid", "0001"
+    ]
+
+    vb.customize ["usbfilter", "add", "1",
+        "--target", :id,
+        "--name", "USB-Serial Controller",
+        "--vendorid", "067B",
+        "--productid", "2303"
+    ]
+
+    # Automcatically mount micro SD storages.
+    #
+    vb.customize ["usbfilter", "add", "2",
+        "--target", :id,
+        "--name", "Any mass storage",
+        "--manufacturer", "Generic",
+        "--product", "Mass Storage Device"
+    ]
+  end
+
+  # Initialize the box.
+  #
+  config.vm.provision "shell", inline: "sudo /myboxes/scripts/init.sh"
+end
