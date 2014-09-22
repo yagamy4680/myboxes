@@ -42,3 +42,9 @@ if [ "ubuntu" == "${OS}" ]; then
 		${FETCH_CMD}/install_$i.sh | /bin/bash
 	done
 fi
+
+if [ "linux" == "${OS}" ]; then
+	echo "unspported OS: $(uname -a)"
+	exit 1
+fi
+
