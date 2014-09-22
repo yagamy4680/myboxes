@@ -5,6 +5,7 @@
 OS="linux"
 [ "" == "$(uname -a | grep -i ubuntu)" ] || OS="ubuntu"
 [ "" == "$(uname -a | grep -i darwin)" ] || OS="darwin"
+[ "" == "$(lsb_release -a | grep -i Distributor | grep -i ubuntu)" ] || OS="ubuntu"
 
 # Github base url
 #
