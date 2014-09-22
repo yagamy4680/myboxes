@@ -61,10 +61,10 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.synced_folder "../../", "/myboxes"
 
   # Share workspace path if environment variable `WORKSPACE_PATH` is available.
-  if ENV.has_key?('IT4T2T_PATH')
-    config.vm.synced_folder ENV['IT4T2T'], "/opt/it4t2t"
+  if ENV.has_key?('SYSADMIN_PATH')
+    config.vm.synced_folder ENV['SYSADMIN_PATH'], "/opt/sysadmin"
   else
-    config.vm.synced_folder "~/Work/workspaces/t2t/it4t2t", "/opt/it4t2t"
+    config.vm.synced_folder "~/Work/workspaces/t2t/sysadmin", "/opt/sysadmin"
   end
 
   # Provider-specific configuration so you can fine-tune various
