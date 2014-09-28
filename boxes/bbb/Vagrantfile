@@ -96,9 +96,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     # vb.customize ["modifyvm", :id, "--uart1", "0x3F8", "4"]
     # vb.customize ["modifyvm", :id, "--uartmode1", "server", "/tmp/arduino_uart0"]
 
-    # Add an USB filter rule to automatically mount Bluetooth Dongle
-    # and PL2302 USB-to-SERIAL cable.
-    #
+    # Add an USB filter rule to automatically mount
+    # CSR Bluetooth Dongle
     vb.customize ["usbfilter", "add", "0",
         "--target", :id,
         "--name", "CSR8510 A10",
@@ -106,6 +105,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
         "--productid", "0001"
     ]
 
+    # Add an USB filter rule to automatically mount
+    # PL2302 USB-to-SERIAL cable.
     vb.customize ["usbfilter", "add", "1",
         "--target", :id,
         "--name", "USB-Serial Controller",
@@ -113,13 +114,15 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
         "--productid", "2303"
     ]
 
-    # Automcatically mount micro SD storages.
+    # Add an USB filter rule for automatically mounting Arduino boards
+    # when the board is connected to the host system via USB.
     #
     vb.customize ["usbfilter", "add", "2",
         "--target", :id,
-        "--name", "Any mass storage",
-        "--manufacturer", "Generic",
-        "--product", "Mass Storage Device"
+        "--name", "any arduino compatible device",
+        "--vendorid", "2341",
+        "--productid", "0042",
+        "--manufacturer", "Arduino (www.arduino.cc)"
     ]
   end
 

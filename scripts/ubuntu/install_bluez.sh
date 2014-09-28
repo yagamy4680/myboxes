@@ -22,7 +22,7 @@ fi
 
 #
 if [ "true" == "${INSTALL_NODEJS_PACKAGES}" ]; then
-	apt-get install libbluetooth-dev
+	apt-get install -y libbluetooth-dev
 	npm install -g noble
 	npm install -g bleno
 	npm install -g sensortag
