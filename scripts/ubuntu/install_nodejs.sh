@@ -8,6 +8,6 @@ apt-get install -y nodejs
 
 # Install required modules
 #
-npm install -g LiveScript
+npm install -g LiveScript@1.2.0
 npm install -g coffee-script
 npm install -g pm2 --unsafe-perm
