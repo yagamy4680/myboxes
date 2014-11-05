@@ -18,10 +18,13 @@ HW_CPUS = RbConfig::CONFIG['host_os'] =~ /darwin/ ?
 VBOX_CPU = (HW_CPUS.to_i / 2).to_s
 
 # Hostname for guest system
-VBOX_NAME = "arduino"
+VBOX_NAME = File.basename(Dir.getwd)
 
 # Extra public/bridged ethernet interface for guest system
 VBOX_NETIF = VM_INTERFACES[0]
+
+VBOX_DEFAULT_SANDBOX = "../../../../t2t/sandbox"
+VBOX_DEFAULT_WORKSPACE = "#{VBOX_DEFAULT_SANDBOX}/workspaces/#{VBOX_NAME}"
 
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
@@ -52,10 +55,10 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
   # Add forwarding port
   config.vm.network :forwarded_port, guest: 4000, host: 4000
-  config.vm.network :forwarded_port, guest: 35729, host: 35729
+  # config.vm.network :forwarded_port, guest: 35729, host: 35729
 
   # Add a public/bridged ethernet interface.
-  # config.vm.network :public_network, :bridge => VBOX_NETIF
+  config.vm.network :public_network, :bridge => VBOX_NETIF
 
   # Share current repository at top.
   config.vm.synced_folder "../../", "/myboxes"
@@ -64,9 +67,17 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   if ENV.has_key?('WORKSPACE_PATH')
     config.vm.synced_folder ENV['WORKSPACE_PATH'], "/workspaces"
   else
-    if !ENV.has_key?('NO_WORKSPACE')
-      config.vm.synced_folder "~/Work/workspaces/t2t/arduinoweb", "/workspaces"
+    if File.directory?(VBOX_DEFAULT_WORKSPACE)
+      config.vm.synced_folder VBOX_DEFAULT_WORKSPACE, "/workspaces"
+    else
+      puts "[warning] #{VBOX_DEFAULT_WORKSPACE} doesn't exist"
     end
+  end
+
+  if File.directory?(VBOX_DEFAULT_SANDBOX)
+    config.vm.synced_folder VBOX_DEFAULT_SANDBOX, "/sandbox"
+  else
+    puts "[warning] #{VBOX_DEFAULT_SANDBOX} doesn't exist"
   end
 
   # Provider-specific configuration so you can fine-tune various
@@ -85,34 +96,37 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     # vb.customize ["modifyvm", :id, "--uart1", "0x3F8", "4"]
     # vb.customize ["modifyvm", :id, "--uartmode1", "server", "/tmp/arduino_uart0"]
 
-    # Add an USB filter rule for automatically mounting Arduino boards
-    # when the board is connected to the host system via USB.
-    #
+    # Add an USB filter rule to automatically mount
+    # CSR Bluetooth Dongle
     vb.customize ["usbfilter", "add", "0",
-        "--target", :id,
-        "--name", "any arduino compatible device",
-        "--vendorid", "2341",
-        "--productid", "0042",
-        "--manufacturer", "Arduino (www.arduino.cc)"
-    ]
-
-    vb.customize ["usbfilter", "add", "1",
         "--target", :id,
         "--name", "CSR8510 A10",
         "--vendorid", "0A12",
         "--productid", "0001"
     ]
 
-    vb.customize ["usbfilter", "add", "2",
+    # Add an USB filter rule to automatically mount
+    # PL2302 USB-to-SERIAL cable.
+    vb.customize ["usbfilter", "add", "1",
         "--target", :id,
         "--name", "USB-Serial Controller",
         "--vendorid", "067B",
         "--productid", "2303"
     ]
+
+    # Add an USB filter rule for automatically mounting Arduino boards
+    # when the board is connected to the host system via USB.
+    #
+    vb.customize ["usbfilter", "add", "2",
+        "--target", :id,
+        "--name", "any arduino compatible device",
+        "--vendorid", "2341",
+        "--productid", "0042",
+        "--manufacturer", "Arduino (www.arduino.cc)"
+    ]
   end
 
   # Initialize the box.
   #
-  config.vm.provision "shell", inline: "sudo /myboxes/scripts/init_$(hostname).sh"
-  config.vm.provision "shell", inline: "sudo wget -O- -q https://raw.githubusercontent.com/yagamy4680/myboxes/master/scripts/install_usbip.sh | sh"
+  config.vm.provision "shell", inline: "sudo /myboxes/scripts/init.sh"
 end
