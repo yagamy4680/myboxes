@@ -6,4 +6,4 @@ cd ${CURRENT}
 CURRENT=$(pwd)
 cd ${TMP}
 
-INSTALL_PKGS=nodejs,bluez,arduino ${CURRENT}/install.sh
+INSTALL_PKGS=wireless,nodejs,bluez,arduino ${CURRENT}/install.sh
