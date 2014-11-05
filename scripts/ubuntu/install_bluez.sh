@@ -20,11 +20,10 @@ if [ "true" == "${INSTALL_PYTHON_PACKAGES}" ]; then
 fi
 
 
-
 if [ "true" == "${INSTALL_NODEJS_PACKAGES}" ]; then
 # Sometimes, install noble/bleno/sensortag on VirtualBox might hang. Let's install
 # these packages manually
-# 
+#
 #	npm install -g noble
 #	npm install -g bleno
 #	npm install -g sensortag
