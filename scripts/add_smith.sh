@@ -36,6 +36,6 @@ fi
 #
 SUDO=$(cat /etc/sudoers | grep -v "#" | grep "^${USER}")
 if [ "" == "${SUDO}" ]; then
-	echo "adding smith to /etc/sudoers"
-	echo "smith ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+	echo "adding ${USER} to /etc/sudoers"
+	echo "${USER} ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
 fi
